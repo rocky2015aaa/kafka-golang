@@ -1,0 +1,23 @@
+-- promote docker swarm slave nodes
+
+docker node promote slave1-hostname
+docker node promote slave2-hostname
+
+-- compile go application
+
+CGO_ENABLED=0 GOOS=linux go build -a
+
+-- docker build command
+docker build --tag message-switch-agent:1.0 .
+
+-- add docker tag for pushing docker hub
+docker tag message-switch-agent:1.0 m/message-switch-agent:1.0
+
+-- docker login
+docker login
+
+-- docker push tagged image
+docker push m/message-switch-agent:1.0
+
+-- docker service create command
+docker service create --name message-switch-agent --network=mnet --replicas 1 --mount type=bind,source=/home/madmin/workspace/go/src/github.com/m/kafka-agent/message-switch-agent,destination=/root/workspace/go/src/github.com/m/kafka-agent/message-switch-agent --host kafka1-internal.m-fws.io:10.16.30.24 --host kafka2-internal.m-fws.io:10.16.30.25 --host kafka3-internal.m-fws.io:10.16.30.26 m/message-switch-agent:1.0
